@@ -19,7 +19,9 @@
  * - Saves bandwidth and server resources
  */
 
-// Removed unused import: z from 'zod'
+import { createLogger } from './pino-logger';
+
+const logger = createLogger('request-coalescer');
 
 /**
  * Request cache entry with metadata
@@ -241,7 +243,7 @@ export class RequestCoalescer {
 
     const afterSize = this.cache.size;
     if (beforeSize !== afterSize) {
-      console.debug(`[RequestCoalescer] Cleaned up ${beforeSize - afterSize} expired entries`);
+      logger.debug(`[RequestCoalescer] Cleaned up ${beforeSize - afterSize} expired entries`);
     }
   }
 

@@ -1,0 +1,12 @@
+- Finding files
+Processed 346 files (4.4s) (14 warnings)
+
+✖ Found 6 circular dependencies!
+
+1) orchestration/mcp-tool-executor.ts > tools/tools-registry.ts > tools/orchestration/index.ts > tools/orchestration/workflow-tools.ts
+2) audit/audit-framework.ts > audit/rules/api-compliance-rules.ts
+3) audit/audit-framework.ts > audit/rules/performance-audit-rules.ts
+4) audit/audit-framework.ts > audit/rules/security-audit-rules.ts
+5) audit/audit-framework.ts > audit/rules/server-audit-rules.ts
+6) audit/audit-framework.ts > audit/rules/tool-audit-rules.ts
+

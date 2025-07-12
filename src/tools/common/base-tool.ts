@@ -22,6 +22,7 @@ import { getUserHintService, enhanceResponseWithHints, type HintContext } from '
 import { idTranslationService, type Translation, type TranslationOptions } from '../../services/id-translation-service';
 import { contractGroupDiscovery } from '../../services/contract-group-discovery-service';
 import { errorRecoveryService, RecoveryContext } from '../../services/error-recovery-service';
+import { createLogger } from '../../utils/pino-logger';
 
 /**
  * Request context for propagating metadata through operations
@@ -56,6 +57,7 @@ export abstract class BaseTool {
   private inFlightRequests = new Map<string, Promise<any>>();
   private requestInterceptors: Array<(config: any) => any | Promise<any>> = [];
   private responseInterceptors: Array<(response: any) => any | Promise<any>> = [];
+  protected readonly logger = createLogger(this.constructor.name);
 
   constructor() {
     this.responseBuilder = new JsonResponseBuilder();
@@ -67,7 +69,7 @@ export abstract class BaseTool {
     try {
       this.cache = await getCacheService();
     } catch (error) {
-      console.warn('[BaseTool] Cache initialization failed, continuing without cache:', error);
+      this.logger.warn('[BaseTool] Cache initialization failed, continuing without cache:', error);
     }
   }
 
@@ -397,7 +399,7 @@ export abstract class BaseTool {
           );
         } catch (translationError) {
           // Log translation error but continue with untranslated result
-          console.warn('[BaseTool] ID translation failed:', translationError);
+          this.logger.warn('[BaseTool] ID translation failed:', translationError);
         }
       }
 
@@ -846,7 +848,7 @@ export abstract class BaseTool {
       const duration = Date.now() - start;
       
       // Log success metric
-      console.debug(`[METRICS] ${this.domain}.${operation}.success`, {
+      this.logger.debug(`[METRICS] ${this.domain}.${operation}.success`, {
         duration,
         ...metricTags
       });
@@ -857,7 +859,7 @@ export abstract class BaseTool {
       const errorCode = (error as any)?.status || 'unknown';
       
       // Log error metric
-      console.debug(`[METRICS] ${this.domain}.${operation}.error`, {
+      this.logger.debug(`[METRICS] ${this.domain}.${operation}.error`, {
         duration,
         errorCode,
         ...metricTags
@@ -975,7 +977,7 @@ export abstract class BaseTool {
     const logPrefix = `[${requestId}] ${this.domain}.${operation}`;
     
     if (options?.logRequest !== false) {
-      console.debug(`${logPrefix} REQUEST`, {
+      this.logger.debug(`${logPrefix} REQUEST`, {
         context: this.currentContext,
         timestamp: new Date().toISOString()
       });
@@ -988,7 +990,7 @@ export abstract class BaseTool {
       
       if (options?.logResponse !== false) {
         const sanitized = options?.sanitize ? options.sanitize(result) : result;
-        console.debug(`${logPrefix} RESPONSE`, {
+        this.logger.debug(`${logPrefix} RESPONSE`, {
           duration: Date.now() - start,
           timestamp: new Date().toISOString(),
           response: sanitized
@@ -998,7 +1000,7 @@ export abstract class BaseTool {
       return result;
     } catch (error) {
       if (options?.logErrors !== false) {
-        console.error(`${logPrefix} ERROR`, {
+        this.logger.error(`${logPrefix} ERROR`, {
           duration: Date.now() - start,
           timestamp: new Date().toISOString(),
           error: {

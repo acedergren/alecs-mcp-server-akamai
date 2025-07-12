@@ -9,6 +9,10 @@
  * while guiding developers to the new consolidated APIs
  */
 
+import { createLogger } from '../../utils/pino-logger';
+
+const logger = createLogger('compatibility');
+
 /**
  * Deprecation warning configuration
  */
@@ -121,9 +125,9 @@ function logDeprecation(
     if (globalConfig.customLogger) {
       globalConfig.customLogger(message);
     } else {
-      console.warn(`⚠️  ${message}`);
+      logger.warn(`⚠️  ${message}`);
       if (callerLine) {
-        console.warn(`    at ${callerLine.trim()}`);
+        logger.warn(`    at ${callerLine.trim()}`);
       }
     }
   }
@@ -249,7 +253,7 @@ export function createDeprecatedAliases<T extends Record<string, any>>(
     for (const part of parts) {
       target = target[part];
       if (!target) {
-        console.error(`Warning: Migration target ${config.new} not found`);
+        logger.error(`Warning: Migration target ${config.new} not found`);
         continue;
       }
     }
@@ -354,7 +358,7 @@ function migrateFile(filePath) {
     if (regex.test(content)) {
       content = content.replace(regex, migration.replacement);
       modified = true;
-      console.log(\`  Migrated: \${migration.pattern} -> \${migration.replacement}\`);
+      logger.info(\`  Migrated: \${migration.pattern} -> \${migration.replacement}\`);
     }
   }
   
@@ -369,17 +373,17 @@ function migrateFile(filePath) {
 // Find all TypeScript files
 const files = glob.sync('src/**/*.ts', { ignore: ['**/node_modules/**'] });
 
-console.log(\`Found \${files.length} files to check...\`);
+logger.info(\`Found \${files.length} files to check...\`);
 
 let migratedCount = 0;
 for (const file of files) {
-  console.log(\`Checking \${file}...\`);
+  logger.info(\`Checking \${file}...\`);
   if (migrateFile(file)) {
     migratedCount++;
   }
 }
 
-console.log(\`\\nMigration complete! Modified \${migratedCount} files.\`);
+logger.info(\`\\nMigration complete! Modified \${migratedCount} files.\`);
 `;
   }
 }

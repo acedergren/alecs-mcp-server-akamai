@@ -15,6 +15,9 @@ import {
   PropertyIdSchema,
   type MCPToolResponse
 } from '../common';
+import { createLogger } from '../../utils/pino-logger';
+
+const logger = createLogger('bulk-operations');
 
 /**
  * Bulk Operation Schemas
@@ -561,7 +564,7 @@ export class ConsolidatedBulkOperationsTools extends BaseTool {
   private async storeOperationMetadata(metadata: any): Promise<void> {
     // In a real implementation, this would store metadata for tracking
     // For now, we'll just log it
-    console.log('Storing bulk operation metadata:', metadata);
+    logger.info('Storing bulk operation metadata:', metadata);
   }
 }
 

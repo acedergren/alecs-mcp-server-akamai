@@ -8,6 +8,7 @@ import { EventEmitter } from 'events';
 import { type AkamaiClient } from '../akamai-client';
 // Note: Using local DomainValidation interface instead of API types for internal state management
 import { validateApiResponse } from '../utils/api-response-validator';
+import { createLogger } from '../utils/pino-logger';
 
 // Validation States
 export enum ValidationStatus {
@@ -65,6 +66,7 @@ export class CertificateValidationMonitor extends EventEmitter {
   private client: AkamaiClient;
   private monitors: Map<number, NodeJS.Timeout> = new Map();
   private validationStates: Map<number, Map<string, DomainValidation>> = new Map();
+  private logger = createLogger('certificate-validation-monitor');
 
   constructor(client: AkamaiClient) {
     super();
@@ -121,7 +123,7 @@ export class CertificateValidationMonitor extends EventEmitter {
           await this.retryFailedValidations(enrollmentId);
         }
       } catch (_error) {
-        console.error('[Error]:', _error);
+        this.logger.error('[Error]:', _error);
         this.emit(
           'validation:failed',
           enrollmentId,
@@ -172,7 +174,7 @@ export class CertificateValidationMonitor extends EventEmitter {
 
       return answers.some((answer: any) => answer.data?.includes(expectedValue));
     } catch (_error) {
-      console.error('[Error]:', _error);
+      this.logger.error('[Error]:', _error);
       return false;
     }
   }
@@ -336,7 +338,7 @@ export class CertificateValidationMonitor extends EventEmitter {
         try {
           await this.triggerDomainValidation(enrollmentId, domain);
         } catch (_error) {
-          console.error('[Error]:', _error);
+          this.logger.error('[Error]:', _error);
         }
       }
     }

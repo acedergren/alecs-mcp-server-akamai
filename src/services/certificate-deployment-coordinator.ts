@@ -13,6 +13,7 @@ import {
   PropertyDetailResponse,
   PropertyHostnamesResponse
 } from '../types/api-responses';
+import { createLogger } from '../utils/pino-logger';
 
 // Deployment Configuration
 export interface DeploymentConfig {
@@ -68,6 +69,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   private activeDeployments: Map<number, DeploymentState> = new Map();
   private propertyStates: Map<string, PropertyLinkState> = new Map();
   private deploymentMonitors: Map<number, NodeJS.Timeout> = new Map();
+  private logger = createLogger('certificate-deployment-coordinator');
 
   constructor(client: AkamaiClient) {
     super();
@@ -468,7 +470,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       // Cancel deployment if possible
       await this.cancelDeployment(enrollmentId);
     } catch (_error) {
-      console.error('[Error]:', _error);
+      this.logger.error('[Error]:', _error);
     }
   }
 
