@@ -1,7 +1,7 @@
 # ALECS API Reference
 
 **Version:** 1.7.4  
-**Last Updated:** 2025-01-09  
+**Last Updated:** 2025-07-12  
 **Total APIs:** 159 tools
 
 ## Overview
@@ -129,6 +129,57 @@ All tools accept an optional `customer` parameter:
   }
 }
 ```
+
+### ID Translation & Human-Readable Names
+
+ALECS automatically translates cryptic Akamai IDs to human-readable names in all responses:
+
+```typescript
+// Raw API Response:
+{
+  "propertyId": "prp_123456",
+  "groupId": "grp_789012",
+  "contractId": "ctr_345678"
+}
+
+// ALECS Enhanced Response:
+{
+  "propertyId": "prp_123456",
+  "propertyId_displayName": "My Website (prp_123456)",
+  "groupId": "grp_789012", 
+  "groupId_displayName": "Production Group (grp_789012)",
+  "contractId": "ctr_345678",
+  "contractId_displayName": "Main Contract (ctr_345678)"
+}
+```
+
+**Supported ID Types:**
+- Property IDs (`prp_*`)
+- Group IDs (`grp_*`) 
+- Contract IDs (`ctr_*`)
+- CP Codes (`cpc_*`)
+- Edge Hostnames (`ehn_*`)
+- Network Lists
+- EdgeWorker IDs
+- Certificate Enrollments
+
+### Hostname Context Routing
+
+The hostname router provides relationship mapping between hostnames and Akamai resources:
+
+```typescript
+// Example: Get hostname context
+{
+  "hostname": "www.example.com",
+  "propertyId": "prp_123456",
+  "propertyName": "Example Website",
+  "cpCodes": ["cpc_789012"],
+  "contractId": "ctr_345678",
+  "groupId": "grp_789012"
+}
+```
+
+This enables cross-service operations like purging content by hostname or setting up DNS records for a property's hostnames.
 
 ### Error Response Format
 

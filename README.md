@@ -301,6 +301,28 @@ Pick your favorite AI assistant and use the one-click installers above! 🚀
 <br>Natural language control
 </td>
 </tr>
+<tr>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/color/96/000000/translate.png" width="64"/>
+<br><strong>🏷️ ID Translation</strong>
+<br>Human-readable names
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/color/96/000000/network.png" width="64"/>
+<br><strong>🗺️ Hostname Routing</strong>
+<br>Resource relationships
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/color/96/000000/performance.png" width="64"/>
+<br><strong>⚡ Performance</strong>
+<br>Smart caching & optimization
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/color/96/000000/code.png" width="64"/>
+<br><strong>📊 Type Safety</strong>
+<br>Full TypeScript coverage
+</td>
+</tr>
 </table>
 
 </div>

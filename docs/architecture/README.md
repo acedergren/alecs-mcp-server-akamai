@@ -1,7 +1,7 @@
 # ALECS Architecture Overview
 
 **Version:** 1.7.4  
-**Last Updated:** 2025-01-09
+**Last Updated:** 2025-07-12
 
 ## System Design
 
@@ -102,6 +102,19 @@ graph TB
 - Automatic recovery
 - Health monitoring
 - Fallback responses
+
+#### ID Translation & Hostname Routing
+- **ID Translation Service**: Converts cryptic Akamai IDs to human-readable names
+  - Property IDs (prp_123) → "My Website (prp_123)"
+  - Group IDs, Contract IDs, CP Codes, Edge Hostnames
+  - Comprehensive caching with LRU eviction
+  - Batch translation support
+
+- **Hostname Router**: Maps hostnames to Akamai resource context
+  - Hostname → Property/CP Code relationships
+  - Cross-service routing for DNS, AppSec, Reporting
+  - Performance-optimized relationship caching
+  - Enables hostname-centric workflows
 
 #### Structured Logging
 - Pino for high performance
