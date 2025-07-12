@@ -41,6 +41,7 @@
  */
 
 import { ErrorTranslator } from './errors';
+import { createLogger } from './pino-logger';
 
 // Circuit breaker states
 export enum CircuitBreakerState {
@@ -480,6 +481,7 @@ export class ResilienceManager {
     return ResilienceManager.instance;
   }
   private errorTranslator: ErrorTranslator = new ErrorTranslator();
+  private logger = createLogger('resilience-manager');
 
   // Default configurations
   private static defaultCircuitBreakerConfig: CircuitBreakerConfig = {
@@ -538,7 +540,7 @@ export class ResilienceManager {
         const category = ErrorClassifier.classify(_error);
 
         // Log error for monitoring
-        console.error(`Operation ${operationType} failed (attempt ${attempt}):`, {
+        this.logger.error(`Operation ${operationType} failed (attempt ${attempt}):`, {
           error: _error.message,
           category: category.type,
           severity: category.severity,
