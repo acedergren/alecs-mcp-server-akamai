@@ -7,6 +7,9 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { TransportConfig, getTransportFromEnv } from '../config/transport-config';
+import { createLogger } from './pino-logger';
+
+const logger = createLogger('transport-factory');
 
 // Lazy load optional transports to avoid dependency errors
 let express: unknown;
@@ -86,9 +89,9 @@ export async function createTransport(config: TransportConfig): Promise<unknown>
       const sseHost = config.options.host || '0.0.0.0';
       
       sseApp.listen(ssePort, sseHost, () => {
-        console.error(`[DONE] SSE server listening on http://${sseHost}:${ssePort}${ssePath}`);
+        logger.info(`[DONE] SSE server listening on http://${sseHost}:${ssePort}${ssePath}`);
         if (config.options.cors) {
-          console.error('[INFO] CORS enabled for SSE transport');
+          logger.info('[INFO] CORS enabled for SSE transport');
         }
       });
       
@@ -114,9 +117,9 @@ export async function createTransport(config: TransportConfig): Promise<unknown>
       
       await httpTransport.start();
       
-      console.error(`[DONE] Streamable HTTP server listening on http://${httpHost}:${httpPort}${httpPath}`);
+      logger.info(`[DONE] Streamable HTTP server listening on http://${httpHost}:${httpPort}${httpPath}`);
       if (config.options.cors) {
-        console.error('[INFO] CORS enabled for Streamable HTTP transport');
+        logger.info('[INFO] CORS enabled for Streamable HTTP transport');
       }
       
       return httpTransport;
@@ -140,10 +143,10 @@ export async function startServerWithTransport(
     }
   };
   
-  console.error(`[INFO] Starting server with ${config.type} transport...`);
+  logger.info(`[INFO] Starting server with ${config.type} transport...`);
   
   const transport = await createTransport(config);
   await server.connect(transport as any);
   
-  console.error('[DONE] Server started successfully');
+  logger.info('[DONE] Server started successfully');
 }

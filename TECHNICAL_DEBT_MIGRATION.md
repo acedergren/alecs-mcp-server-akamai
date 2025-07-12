@@ -58,13 +58,14 @@
 **Completion**: Replaced 5 console.error calls across 3 files with pino logger
 
 #### Task 3.2.3: Console Replacement - Tools
-**Status**: ⬜ UNCLAIMED  
+**Status**: ✅ COMPLETE - Agent: BackgroundBot-1  
 **Priority**: MEDIUM  
 **Directory**: `src/tools/` (legacy files)  
 **Action**: Replace all console.* with pino logger
+**Completion**: Replaced 8 console.* calls across 2 files (bulk-operations and base-tool)
 
 #### Task 3.2.4: Console Replacement - Utils
-**Status**: ⬜ UNCLAIMED  
+**Status**: 🔄 IN PROGRESS - Agent: BackgroundBot-1  
 **Priority**: LOW  
 **Directory**: `src/utils/`  
 **Action**: Replace all console.* with pino logger
