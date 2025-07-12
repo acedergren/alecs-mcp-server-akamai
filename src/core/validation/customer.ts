@@ -11,6 +11,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { createLogger } from '../../utils/pino-logger';
+
+const logger = createLogger('customer-validation');
 
 /**
  * Edge configuration structure
@@ -72,7 +75,7 @@ function loadEdgeConfig(): EdgeConfig | null {
     
     return config;
   } catch (error) {
-    console.error('Failed to load .edgerc:', error);
+    logger.error('Failed to load .edgerc:', error);
     return null;
   }
 }
@@ -289,7 +292,7 @@ export function safeCustomerParam(args: Record<string, unknown>): { customer?: s
     return customer ? { customer } : {};
   } catch (error) {
     // Log error but don't throw - allows graceful fallback to default customer
-    console.warn(`Customer parameter validation warning: ${error}`);
+    logger.warn(`Customer parameter validation warning: ${error}`);
     return {};
   }
 }

@@ -12,6 +12,7 @@
 import { RequestCoalescer, KeyNormalizers } from '../../utils/request-coalescer';
 import { UnifiedCacheService as SmartCache } from '../../services/unified-cache-service';
 import { CircuitBreaker } from '../../utils/circuit-breaker';
+import { createLogger } from '../../utils/pino-logger';
 
 /**
  * Performance configuration
@@ -93,6 +94,7 @@ const globalCoalescer = new RequestCoalescer({
 });
 
 const circuitBreakers = new Map<string, CircuitBreaker>();
+const logger = createLogger('performance');
 
 /**
  * Get or create circuit breaker for an operation
@@ -320,13 +322,13 @@ export function performanceOptimized<T extends (...args: any[]) => Promise<any>>
         
         if (config.metrics!.logLevel === 'debug' || 
             (config.metrics!.logLevel === 'info' && duration > 1000)) {
-          console.log(`[PERF] ${operation} completed in ${duration}ms`);
+          logger.info(`[PERF] ${operation} completed in ${duration}ms`);
         }
         
         return result;
       } catch (error) {
         if (config.metrics!.logLevel !== 'error') {
-          console.error(`[PERF] ${operation} failed:`, error);
+          logger.error(`[PERF] ${operation} failed:`, error);
         }
         throw error;
       }

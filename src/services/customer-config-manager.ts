@@ -6,6 +6,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { createLogger } from '../utils/pino-logger';
+
+const logger = createLogger('customer-config-manager');
 
 export interface CustomerConfig {
   client_secret: string;
@@ -62,7 +65,7 @@ export class CustomerConfigManager {
         }
       }
     } catch (error) {
-      console.error('Failed to load .edgerc file:', error);
+      logger.error('Failed to load .edgerc file:', error);
       // Set default config if file not found
       this.configs.set('default', {
         client_secret: process.env['AKAMAI_CLIENT_SECRET'] || '',

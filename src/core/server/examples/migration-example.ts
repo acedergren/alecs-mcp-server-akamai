@@ -6,6 +6,9 @@
 
 import { FastMCPServer, tool } from '../fast-mcp-server';
 import { z } from 'zod';
+import { createLogger } from '../../../utils/pino-logger';
+
+const logger = createLogger('migration-example');
 
 // ============================================
 // BEFORE: Old Property Server (1,200+ lines)
@@ -157,5 +160,7 @@ async function main() {
 // ============================================
 
 if (require.main === module) {
-  main().catch(console.error);
+  main().catch((error) => {
+    logger.error('Migration example failed:', error);
+  });
 }

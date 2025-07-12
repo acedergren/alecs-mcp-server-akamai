@@ -26,6 +26,7 @@ import { RequestCoalescer } from './performance/request-coalescer';
 import { SmartCache } from './performance/smart-cache';
 import { ConnectionPool } from './performance/connection-pool';
 import { StreamingResponse } from './performance/streaming-response';
+import { createLogger } from '../../utils/pino-logger';
 
 // Tool definition helper for ultimate simplicity
 export function tool<T = any>(
@@ -81,6 +82,7 @@ export class FastMCPServer {
   protected cache: SmartCache;
   protected coalescer: RequestCoalescer;
   protected pool: ConnectionPool;
+  private logger = createLogger('fast-mcp-server');
   
   // Simple tool array - override in subclass
   tools: ToolDefinition[] = [];
@@ -184,7 +186,7 @@ export class FastMCPServer {
     process.on('SIGINT', () => this.shutdown());
     process.on('SIGTERM', () => this.shutdown());
     
-    console.error(`[${this.name}] Started with ${this.tools.length} tools`);
+    this.logger.info(`[${this.name}] Started with ${this.tools.length} tools`);
   }
   
   private async shutdown(): Promise<void> {

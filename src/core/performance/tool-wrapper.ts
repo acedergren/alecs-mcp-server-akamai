@@ -9,6 +9,7 @@
 import { performanceOptimized, PerformanceProfiles, PerformanceConfig } from './index';
 import { withCustomerValidation } from '../validation/customer';
 import { withErrorHandling } from '../errors';
+import { createLogger } from '../../utils/pino-logger';
 
 /**
  * Tool metadata for automatic optimization
@@ -289,6 +290,7 @@ export function registerOptimizedTools(
   server: any,
   tools: Map<string, OptimizedTool>
 ): void {
+  const logger = createLogger('tool-wrapper');
   for (const [name, tool] of tools) {
     // Register with MCP protocol
     server.registerTool({
@@ -300,7 +302,7 @@ export function registerOptimizedTools(
   }
   
   // Log registration
-  console.log(`[PERF] Registered ${tools.size} optimized tools`);
+  logger.info(`[PERF] Registered ${tools.size} optimized tools`);
 }
 
 /**
