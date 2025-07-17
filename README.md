@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/acedergren-alecs-mcp-server-akamai-badge.png)](https://mseep.ai/app/acedergren-alecs-mcp-server-akamai)
+
 # 🚀 ALECS MCP Server for Akamai
 
 <div align="center">
